@@ -13,15 +13,19 @@ export async function GET(
   const session = await sessionStorage.get(upperCode);
 
   if (!session) {
+    console.log('[GET MESSAGES] Session not found:', upperCode);
     return NextResponse.json({ error: 'Session not found' }, { status: 404 });
   }
 
   let messages = session.messages;
 
+  console.log('[GET MESSAGES] Total messages in session:', messages.length, 'since:', since);
+
   // Filter messages since timestamp if provided
   if (since) {
     const sinceTimestamp = parseInt(since);
     messages = messages.filter(m => m.timestamp > sinceTimestamp);
+    console.log('[GET MESSAGES] Filtered messages:', messages.length);
   }
 
   return NextResponse.json({
