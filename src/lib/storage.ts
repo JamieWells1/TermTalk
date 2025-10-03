@@ -28,6 +28,7 @@ export const sessionStorage = {
     if (redis) {
       try {
         const session = await redis.get<Session>(`session:${code}`);
+        console.log(`[Storage] Get session ${code}:`, session ? 'FOUND' : 'NOT FOUND');
         return session;
       } catch (err) {
         console.error('Redis get error:', err);
@@ -41,12 +42,16 @@ export const sessionStorage = {
     if (redis) {
       try {
         // Set with 24 hour expiration (86400 seconds)
-        await redis.set(`session:${code}`, JSON.stringify(session), { ex: 86400 });
+        await redis.set(`session:${code}`, session, { ex: 86400 });
+        console.log(`[Storage] Set session ${code} in Redis`);
       } catch (err) {
         console.error('Redis set error:', err);
+        // Fallback to local
+        localSessions.set(code, session);
       }
+    } else {
+      localSessions.set(code, session);
     }
-    localSessions.set(code, session);
   },
 
   async has(code: string): Promise<boolean> {
