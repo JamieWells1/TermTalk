@@ -13,13 +13,28 @@ const localSessions = new Map<string, Session>();
 
 // Initialize Redis if credentials are available
 let redis: Redis | null = null;
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+
+// Try different environment variable names (Vercel uses different names)
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+// If only REDIS_URL is provided (Vercel serverless redis format)
+if (process.env.REDIS_URL) {
+  try {
+    redis = Redis.fromEnv();
+    console.log('[Storage] Using Redis for session storage (from REDIS_URL)');
+  } catch (err) {
+    console.error('[Storage] Failed to initialize Redis from REDIS_URL:', err);
+  }
+} else if (redisUrl && redisToken) {
   redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    url: redisUrl,
+    token: redisToken,
   });
   console.log('[Storage] Using Redis for session storage');
-} else {
+}
+
+if (!redis) {
   console.log('[Storage] Using in-memory storage (local development)');
 }
 
