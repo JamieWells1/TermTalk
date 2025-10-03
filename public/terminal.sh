@@ -101,30 +101,21 @@ send_message() {
     # Show message immediately
     echo -e "${GRAY}[${TIME_NOW}]${RESET} ${GREEN}${BOLD}${MY_NAME}:${RESET} ${MESSAGE}"
 
-    # Send to server using Python to handle JSON properly
-    python3 << EOF 2>/dev/null
-import json, urllib.request, urllib.error
+    # Escape message for JSON (replace quotes and newlines)
+    local ESCAPED_MSG=$(echo "$MESSAGE" | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read().strip()))')
 
-data = {
-    "code": "${SESSION_CODE}",
-    "userId": "${USER_ID}",
-    "message": """${MESSAGE}"""
-}
+    # Send to server using curl
+    RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/api/messages/send" \
+        -H "Content-Type: application/json" \
+        -d "{\"code\":\"${SESSION_CODE}\",\"userId\":\"${USER_ID}\",\"message\":${ESCAPED_MSG}}")
 
-req = urllib.request.Request(
-    "${BASE_URL}/api/messages/send",
-    data=json.dumps(data).encode('utf-8'),
-    headers={'Content-Type': 'application/json'}
-)
+    # Extract HTTP code from response
+    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    BODY=$(echo "$RESPONSE" | sed '$d')
 
-try:
-    with urllib.request.urlopen(req) as response:
-        result = response.read()
-except urllib.error.HTTPError as e:
-    print(f"Error sending message: {e.code}", file=sys.stderr)
-except Exception as e:
-    print(f"Error: {e}", file=sys.stderr)
-EOF
+    if [ "$HTTP_CODE" != "200" ]; then
+        echo -e "${YELLOW}⚠ Message send failed (HTTP ${HTTP_CODE})${RESET}" >&2
+    fi
 
     # Update timestamp
     NEW_TS=$(($(date +%s) * 1000))

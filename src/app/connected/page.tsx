@@ -80,7 +80,7 @@ export default function Connected() {
 
   const handleOpenTerminal = async () => {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-    const command = `curl -o /tmp/term_talk.sh ${baseUrl}/terminal.sh && bash /tmp/term_talk.sh ${sessionCode} ${userId}`;
+    const command = `curl -o /tmp/term_talk.sh ${baseUrl}/terminal.sh && TERM_TALK_URL=${baseUrl} bash /tmp/term_talk.sh ${sessionCode} ${userId}`;
 
     // Try to copy to clipboard with fallback
     try {
