@@ -1,3 +1,5 @@
+<img src="./public/logo.png" alt="TermTalk Demo" style="width: 25%; border-radius: 8px;" />
+
 # TermTalk
 
 > Chat like a hacker. Terminal-style group messaging for developers.
