@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sessions } from '@/lib/sessions';
+import { sessionStorage } from '@/lib/storage';
 
 // Generate random 6-character code
 function generateCode(): string {
@@ -24,10 +24,9 @@ export async function POST(request: Request) {
       createdAt: Date.now(),
     };
 
-    sessions.set(code, sessionData);
+    await sessionStorage.set(code, sessionData);
 
-    console.log(`[CREATE] Session ${code} created. Total sessions: ${sessions.size}`);
-    console.log(`[CREATE] Sessions map:`, Array.from(sessions.keys()));
+    console.log(`[CREATE] Session ${code} created`);
 
     return NextResponse.json({ code, userId, userName: userName.trim() });
   } catch (error) {

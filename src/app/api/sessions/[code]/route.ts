@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sessions } from '@/lib/sessions';
+import { sessionStorage } from '@/lib/storage';
 
 export async function GET(
   request: Request,
@@ -9,10 +9,8 @@ export async function GET(
   const upperCode = code.toUpperCase();
 
   console.log(`[GET] Looking for session ${upperCode}`);
-  console.log(`[GET] Available sessions:`, Array.from(sessions.keys()));
-  console.log(`[GET] Total sessions: ${sessions.size}`);
 
-  const session = sessions.get(upperCode);
+  const session = await sessionStorage.get(upperCode);
 
   if (!session) {
     console.log(`[GET] Session ${upperCode} not found`);

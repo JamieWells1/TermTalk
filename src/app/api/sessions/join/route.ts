@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sessions } from '@/lib/sessions';
+import { sessionStorage } from '@/lib/storage';
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +9,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Code and display name are required' }, { status: 400 });
     }
 
-    const session = sessions.get(code.toUpperCase());
+    const upperCode = code.toUpperCase();
+    const session = await sessionStorage.get(upperCode);
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
@@ -25,7 +26,10 @@ export async function POST(request: Request) {
       timestamp: Date.now(),
     });
 
-    return NextResponse.json({ code: code.toUpperCase(), userId, userName: userName.trim() });
+    // Save updated session
+    await sessionStorage.set(upperCode, session);
+
+    return NextResponse.json({ code: upperCode, userId, userName: userName.trim() });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to join session' }, { status: 500 });
   }

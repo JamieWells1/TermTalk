@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sessions } from '@/lib/sessions';
+import { sessionStorage } from '@/lib/storage';
 
 export async function GET(
   request: Request,
@@ -9,7 +9,8 @@ export async function GET(
   const since = searchParams.get('since');
 
   const { code } = await params;
-  const session = sessions.get(code.toUpperCase());
+  const upperCode = code.toUpperCase();
+  const session = await sessionStorage.get(upperCode);
 
   if (!session) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 });
