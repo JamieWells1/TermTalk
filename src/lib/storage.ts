@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 
 // Storage abstraction that works both locally and on Vercel
 type Session = {
@@ -11,51 +11,34 @@ type Session = {
 // In-memory fallback for local development
 const localSessions = new Map<string, Session>();
 
-// Initialize Redis if REDIS_URL is available
+// Initialize Redis
 let redis: Redis | null = null;
 
-if (process.env.REDIS_URL) {
+// Use Upstash Redis REST API
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
   try {
-    redis = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
 
-    // Connect and handle errors
-    redis.connect().then(() => {
-      console.log('[Storage] Connected to Redis');
-    }).catch((err) => {
-      console.error('[Storage] Redis connection failed:', err);
-      redis = null;
-    });
-
-    redis.on('error', (err) => {
-      console.error('[Storage] Redis error:', err);
-    });
-
-    console.log('[Storage] Using Redis for session storage');
+    console.log('[Storage] Using Upstash Redis for session storage');
   } catch (err) {
     console.error('[Storage] Failed to initialize Redis:', err);
     redis = null;
   }
-}
-
-if (!redis) {
+} else {
   console.log('[Storage] Using in-memory storage (local development)');
+  console.log('[Storage] To use Redis, set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN');
 }
 
 export const sessionStorage = {
   async get(code: string): Promise<Session | null> {
     if (redis) {
       try {
-        const data = await redis.get(`session:${code}`);
-        if (data) {
-          const session = JSON.parse(data) as Session;
-          console.log(`[Storage] Get session ${code}: FOUND`);
-          return session;
-        }
-        console.log(`[Storage] Get session ${code}: NOT FOUND`);
-        return null;
+        const session = await redis.get<Session>(`session:${code}`);
+        console.log(`[Storage] Get session ${code}:`, session ? 'FOUND' : 'NOT FOUND');
+        return session;
       } catch (err) {
         console.error('Redis get error:', err);
         return null;
@@ -68,7 +51,7 @@ export const sessionStorage = {
     if (redis) {
       try {
         // Set with 24 hour expiration (86400 seconds)
-        await redis.setex(`session:${code}`, 86400, JSON.stringify(session));
+        await redis.set(`session:${code}`, session, { ex: 86400 });
         console.log(`[Storage] Set session ${code} in Redis`);
       } catch (err) {
         console.error('Redis set error:', err);
