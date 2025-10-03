@@ -11,7 +11,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Only clear existing session on mount (not when creating/joining)
   useEffect(() => {
     console.log('[Home] Mounted, clearing old localStorage');
     localStorage.removeItem('sessionCode');
@@ -43,7 +42,6 @@ export default function Home() {
         return;
       }
 
-      // Clear any old data first, then store new session info
       localStorage.clear();
       localStorage.setItem('sessionCode', data.code);
       localStorage.setItem('userId', data.userId);
@@ -77,7 +75,6 @@ export default function Home() {
         return;
       }
 
-      // Clear any old data first, then store new session info
       localStorage.clear();
       localStorage.setItem('sessionCode', data.code);
       localStorage.setItem('userId', data.userId);

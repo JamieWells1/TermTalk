@@ -19,14 +19,12 @@ export async function POST(request: Request) {
     const userId = Math.random().toString(36).substring(7);
     session.users.push({ id: userId, name: userName.trim() });
 
-    // Add system message
     session.messages.push({
       user: 'SYSTEM',
       message: `${userName.trim()} joined the session`,
       timestamp: Date.now(),
     });
 
-    // Save updated session
     await sessionStorage.set(upperCode, session);
 
     return NextResponse.json({ code: upperCode, userId, userName: userName.trim() });

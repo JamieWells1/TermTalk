@@ -21,7 +21,6 @@ export async function GET(
 
   console.log('[GET MESSAGES] Total messages in session:', messages.length, 'since:', since);
 
-  // Filter messages since timestamp if provided
   if (since) {
     const sinceTimestamp = parseInt(since);
     messages = messages.filter(m => m.timestamp > sinceTimestamp);

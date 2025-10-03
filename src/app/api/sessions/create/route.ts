@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sessionStorage } from '@/lib/storage';
 
-// Generate random 6-character code
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }

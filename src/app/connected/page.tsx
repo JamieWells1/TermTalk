@@ -36,7 +36,6 @@ export default function Connected() {
       setUserId(id);
       setIsLoading(false);
 
-      // Fetch session info
       fetchSessionInfo(code);
     }
 
@@ -51,7 +50,6 @@ export default function Connected() {
       mounted = false;
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSessionInfo = async (code: string) => {
@@ -82,23 +80,19 @@ export default function Connected() {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
     const command = `curl -o /tmp/term_talk.sh ${baseUrl}/terminal.sh && TERM_TALK_URL=${baseUrl} bash /tmp/term_talk.sh ${sessionCode} ${userId}`;
 
-    // Try to copy to clipboard with fallback
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(command);
         alert(`Terminal command copied to clipboard!\n\nPaste and run this in your terminal:\n\n${command}`);
       } else {
-        // Fallback for browsers that don't support clipboard API
         showCommandModal(command);
       }
     } catch (error) {
-      // If clipboard fails, show modal
       showCommandModal(command);
     }
   };
 
   const showCommandModal = (command: string) => {
-    // Create a temporary textarea to allow manual copy
     const textarea = document.createElement('textarea');
     textarea.value = command;
     textarea.style.position = 'fixed';
@@ -121,7 +115,6 @@ export default function Connected() {
     const command = `curl -s ${baseUrl}/terminal.sh | bash -s ${sessionCode} ${userId}`;
 
     try {
-      // Try to open iTerm via AppleScript
       const response = await fetch('/api/open-terminal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,12 +122,10 @@ export default function Connected() {
       });
 
       if (!response.ok) {
-        // Fallback: copy to clipboard
         navigator.clipboard.writeText(command);
         alert(`Please paste this command in your terminal:\n\n${command}`);
       }
     } catch (error) {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(command);
       alert(`Please paste this command in your terminal:\n\n${command}`);
     }

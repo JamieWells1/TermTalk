@@ -1,6 +1,5 @@
 import { Redis } from '@upstash/redis';
 
-// Storage abstraction that works both locally and on Vercel
 type Session = {
   code: string;
   users: { id: string; name: string }[];
@@ -8,13 +7,10 @@ type Session = {
   createdAt: number;
 };
 
-// In-memory fallback for local development
 const localSessions = new Map<string, Session>();
 
-// Initialize Redis
 let redis: Redis | null = null;
 
-// Use Upstash Redis REST API
 if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
   try {
     redis = new Redis({
@@ -50,12 +46,10 @@ export const sessionStorage = {
   async set(code: string, session: Session): Promise<void> {
     if (redis) {
       try {
-        // Set with 24 hour expiration (86400 seconds)
         await redis.set(`session:${code}`, session, { ex: 86400 });
         console.log(`[Storage] Set session ${code} in Redis`);
       } catch (err) {
         console.error('Redis set error:', err);
-        // Fallback to local
         localSessions.set(code, session);
       }
     } else {
@@ -87,7 +81,6 @@ export const sessionStorage = {
     localSessions.delete(code);
   },
 
-  // Get size (only works locally)
   get size(): number {
     return localSessions.size;
   },

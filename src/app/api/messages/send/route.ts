@@ -35,9 +35,6 @@ export async function POST(request: Request) {
 
     session.messages.push(newMessage);
 
-    console.log('[SEND] Added message, total messages:', session.messages.length);
-
-    // Save updated session
     await sessionStorage.set(upperCode, session);
 
     console.log('[SEND] Session saved successfully');
